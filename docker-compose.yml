@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: travel-platform-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-travel_platform}
+      MYSQL_USER: ${DB_USERNAME:-travel_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-travel_pass}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-travel_root_pass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - travel-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-travel_root_pass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    container_name: travel-platform-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  travel-mysql-data:
